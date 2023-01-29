@@ -1,7 +1,5 @@
 import { AuthLoginDto } from './dtos/auth.login.dto';
-import { UserEntity } from 'src/Users/users.entity';
 import { getUser } from 'src/common/decorator/user.data.decorator';
-import { tokenType } from './auth.interface';
 import { AuthService } from './auth.service';
 import {
   Controller,

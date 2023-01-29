@@ -6,7 +6,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { PostEntity } from './posts.entity';
 import { Repository } from 'typeorm';
-import { UserEntity } from '../Users/users.entity';
 import { ImageEntity } from 'src/Images/Images.entity';
 import { UserPostLikeEntity } from 'src/UserPostLikes/userPostLikes.entity';
 

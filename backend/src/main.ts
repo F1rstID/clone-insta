@@ -1,11 +1,32 @@
 import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { NestExpressApplication } from '@nestjs/platform-express';
+import { NestApplication, NestFactory } from '@nestjs/core';
+import { ExpressAdapter } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import * as fs from 'fs';
+import { Server, ServerOptions } from 'spdy';
+import express from 'express';
+import spdy from 'spdy';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const expressApp = express();
+  const spdyOpts: ServerOptions = {
+    ca: fs.readFileSync(
+      '/etc/letsencrypt/live/codingtestrg.shop/fullchain.pem',
+    ),
+    key: fs.readFileSync('/etc/letsencrypt/live/codingtestrg.shop/privkey.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/codingtestrg.shop/cert.pem'),
+    spdy: {
+      protocols: ['h2', 'spdy/3.1', 'spdy/3', 'spdy/2', 'http/1.1'],
+      connection: { autoSpdy31: true },
+    },
+  };
+
+  const server: Server = spdy.createServer(spdyOpts, expressApp);
+  const app: NestApplication = await NestFactory.create(
+    AppModule,
+    new ExpressAdapter(expressApp),
+  );
 
   //* 전역으로 Pipes 설정
   app.useGlobalPipes(new ValidationPipe());
@@ -27,7 +48,7 @@ async function bootstrap() {
     origin: true,
     credentials: true,
   });
-
-  await app.listen(process.env.HTTP_PORT);
+  await app.init();
+  server.listen(process.env.HTTPS_PORT);
 }
 bootstrap();
